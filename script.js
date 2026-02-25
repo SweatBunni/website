@@ -1,7 +1,7 @@
 const statusLines = [
   '> Engine boot: ModMind AI Generator online',
   '> Prompt parser: active',
-  '> Generation mode: full project scaffold',
+  '> Generation mode: prompt-driven only',
   '> Export mode: per-file + zip package',
   '> Ready to compile your idea into code'
 ];
@@ -31,8 +31,8 @@ year.textContent = new Date().getFullYear();
 let latestFiles = [];
 let latestProjectName = 'modmind-project';
 
-function setLoaderOptions() {
-  const nextOptions = loaderOptions[aiType.value] || [];
+function setLoaderOptions(aiSystem) {
+  const nextOptions = loaderOptions[aiSystem] || [];
   loader.innerHTML = nextOptions
     .map(item => `<option value="${item}">${item[0].toUpperCase()}${item.slice(1)}</option>`)
     .join('');
@@ -42,14 +42,14 @@ function packageToPath(packageName) {
   return packageName.replace(/\./g, '/');
 }
 
-function selectedFeatures() {
-  return Array.from(document.querySelectorAll('input[name="feature"]:checked')).map(item => item.value);
-}
-
 function toggleFeatures(nextFeatures) {
   document.querySelectorAll('input[name="feature"]').forEach(item => {
     item.checked = nextFeatures.includes(item.value);
   });
+}
+
+function selectedFeaturesFromUI() {
+  return Array.from(document.querySelectorAll('input[name="feature"]:checked')).map(item => item.value);
 }
 
 function sanitizeProjectName(value) {
@@ -82,26 +82,20 @@ function inferThemeFromPrompt(prompt) {
     if (lowered.includes(needle)) tags.push(label);
   });
 
-  if (!tags.length) return 'core gameplay features and progression';
-  return tags.join(', ');
+  return tags.length ? tags.join(', ') : 'core gameplay features and progression';
 }
 
 function inferFromPrompt(prompt) {
   const lowered = prompt.toLowerCase();
-
-  const inferredAI = lowered.match(/plugin|spigot|bukkit|server/) ? 'plugins' : 'mods';
+  const inferredAI = /plugin|spigot|bukkit|server/.test(lowered) ? 'plugins' : 'mods';
 
   let inferredLoader = inferredAI === 'plugins' ? 'spigot' : 'fabric';
   ['fabric', 'forge', 'quilt', 'neoforge', 'bukkit', 'spigot'].forEach(candidate => {
     if (lowered.includes(candidate)) inferredLoader = candidate;
   });
 
-  if (inferredAI === 'plugins' && !['bukkit', 'spigot'].includes(inferredLoader)) {
-    inferredLoader = 'spigot';
-  }
-  if (inferredAI === 'mods' && ['bukkit', 'spigot'].includes(inferredLoader)) {
-    inferredLoader = 'fabric';
-  }
+  if (inferredAI === 'plugins' && !['bukkit', 'spigot'].includes(inferredLoader)) inferredLoader = 'spigot';
+  if (inferredAI === 'mods' && ['bukkit', 'spigot'].includes(inferredLoader)) inferredLoader = 'fabric';
 
   const inferredFeatures = [];
   if (/command|slash command/.test(lowered)) inferredFeatures.push('commands');
@@ -110,44 +104,45 @@ function inferFromPrompt(prompt) {
   if (!inferredFeatures.length) inferredFeatures.push('commands', 'events', 'config');
 
   const inferredProjectName = inferNameFromPrompt(prompt);
-  const inferredPackage = `dev.modmind.${inferredProjectName.toLowerCase()}`;
-  const inferredTheme = inferThemeFromPrompt(prompt);
 
   return {
     aiSystem: inferredAI,
     loaderName: inferredLoader,
     features: inferredFeatures,
     projectName: inferredProjectName,
-    packageName: inferredPackage,
-    theme: inferredTheme
+    packageName: `dev.modmind.${inferredProjectName.toLowerCase()}`,
+    theme: inferThemeFromPrompt(prompt)
   };
 }
 
-function applyPromptToSettings() {
-  const prompt = promptInput.value.trim();
-  if (!prompt) {
-    summary.classList.remove('muted');
-    summary.textContent = 'Enter a prompt first so ModMind AI can infer settings.';
-    return;
-  }
-
-  const inferred = inferFromPrompt(prompt);
+function applyInferredSettings(inferred) {
   aiType.value = inferred.aiSystem;
-  setLoaderOptions();
+  setLoaderOptions(inferred.aiSystem);
   loader.value = inferred.loaderName;
   projectNameInput.value = inferred.projectName;
   packageNameInput.value = inferred.packageName;
   featureThemeInput.value = inferred.theme;
   toggleFeatures(inferred.features);
+}
 
+function parsePrompt() {
+  const prompt = promptInput.value.trim();
+  if (!prompt) {
+    summary.classList.remove('muted');
+    summary.textContent = 'Enter a prompt first.';
+    return null;
+  }
+
+  const inferred = inferFromPrompt(prompt);
+  applyInferredSettings(inferred);
   summary.classList.add('muted');
   summary.textContent = `Prompt parsed: ${inferred.aiSystem} • ${inferred.loaderName} • ${inferred.features.join(', ')}`;
+  return inferred;
 }
 
 function createJavaMainClass(projectName, packageName, aiSystem, loaderName, features, theme) {
   const className = `${sanitizeProjectName(projectName).replace(/[^a-zA-Z0-9]/g, '')}Main`;
   const featureMethods = [];
-
   if (features.includes('commands')) featureMethods.push('    bootstrapCommandSystem();');
   if (features.includes('events')) featureMethods.push('    bootstrapEventSystem();');
   if (features.includes('config')) featureMethods.push(aiSystem === 'plugins' ? '    saveDefaultConfig();' : '    bootstrapConfig();');
@@ -262,26 +257,20 @@ displayName="${projectName}"
 function createGradleFiles(projectName, packageName, loaderName) {
   return [
     { path: 'settings.gradle', content: `rootProject.name = '${sanitizeProjectName(projectName)}'\n` },
-    {
-      path: 'gradle.properties',
-      content: `org.gradle.jvmargs=-Xmx2G\nproject_group=${packageName}\nloader_target=${loaderName}\n`
-    },
-    {
-      path: 'build.gradle',
-      content: `plugins { id 'java' }\ngroup='${packageName}'\nversion='1.0.0'\nrepositories { mavenCentral() }\n`
-    }
+    { path: 'gradle.properties', content: `org.gradle.jvmargs=-Xmx2G\nproject_group=${packageName}\nloader_target=${loaderName}\n` },
+    { path: 'build.gradle', content: `plugins { id 'java' }\ngroup='${packageName}'\nversion='1.0.0'\nrepositories { mavenCentral() }\n` }
   ];
 }
 
-function createServiceFiles(packageName, theme) {
+function createServiceFiles(packageName) {
   return [
     {
       path: `src/main/java/${packageToPath(packageName)}/service/FeatureService.java`,
-      content: `package ${packageName}.service;\n\npublic class FeatureService {\n  private final String theme;\n  public FeatureService(String theme) { this.theme = theme; }\n  public String getThemeDescription() { return "Theme: " + theme; }\n}\n`
+      content: `package ${packageName}.service;\n\npublic class FeatureService {\n  private final String theme;\n  public FeatureService(String theme) { this.theme = theme; }\n  public String getThemeDescription() { return \"Theme: \" + theme; }\n}\n`
     },
     {
       path: `src/main/java/${packageToPath(packageName)}/registry/ModRegistry.java`,
-      content: `package ${packageName}.registry;\n\npublic final class ModRegistry {\n  private ModRegistry() {}\n  public static void registerAll() { System.out.println("Registering generated systems."); }\n}\n`
+      content: `package ${packageName}.registry;\n\npublic final class ModRegistry {\n  private ModRegistry() {}\n  public static void registerAll() { System.out.println(\"Registering generated systems.\"); }\n}\n`
     }
   ];
 }
@@ -295,7 +284,7 @@ function createFeatureFiles(projectName, packageName, aiSystem, features) {
       content:
         aiSystem === 'plugins'
           ? `package ${packageName}.commands;\n\nimport ${packageName}.service.FeatureService;\nimport org.bukkit.command.*;\n\npublic class MainCommand implements CommandExecutor {\n  private final FeatureService service;\n  public MainCommand(FeatureService service) { this.service = service; }\n  @Override\n  public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {\n    sender.sendMessage(service.getThemeDescription());\n    return true;\n  }\n}\n`
-          : `package ${packageName}.commands;\n\npublic class MainCommand {\n  public void register() { System.out.println("Mod command registered."); }\n}\n`
+          : `package ${packageName}.commands;\n\npublic class MainCommand {\n  public void register() { System.out.println(\"Mod command registered.\"); }\n}\n`
     });
   }
 
@@ -304,8 +293,8 @@ function createFeatureFiles(projectName, packageName, aiSystem, features) {
       path: `src/main/java/${packageToPath(packageName)}/events/PlayerJoinListener.java`,
       content:
         aiSystem === 'plugins'
-          ? `package ${packageName}.events;\n\nimport org.bukkit.event.*;\nimport org.bukkit.event.player.PlayerJoinEvent;\n\npublic class PlayerJoinListener implements Listener {\n  @EventHandler\n  public void onJoin(PlayerJoinEvent event) { event.getPlayer().sendMessage("Welcome to generated content!"); }\n}\n`
-          : `package ${packageName}.events;\n\npublic class PlayerJoinListener {\n  public void register() { System.out.println("Event hooks registered."); }\n}\n`
+          ? `package ${packageName}.events;\n\nimport org.bukkit.event.*;\nimport org.bukkit.event.player.PlayerJoinEvent;\n\npublic class PlayerJoinListener implements Listener {\n  @EventHandler\n  public void onJoin(PlayerJoinEvent event) { event.getPlayer().sendMessage(\"Welcome to generated content!\"); }\n}\n`
+          : `package ${packageName}.events;\n\npublic class PlayerJoinListener {\n  public void register() { System.out.println(\"Event hooks registered.\"); }\n}\n`
     });
   }
 
@@ -322,13 +311,12 @@ function createFeatureFiles(projectName, packageName, aiSystem, features) {
 function createReadme(projectName, aiSystem, loaderName, theme, features, prompt) {
   return {
     path: 'README.md',
-    content: `# ${projectName}\n\nGenerated by ModMind AI (${aiSystem} on ${loaderName}).\n\n## Prompt\n${prompt || 'Manual settings used'}\n\n## Theme\n${theme}\n\n## Features\n${features.map(item => `- ${item}`).join('\n')}\n`
+    content: `# ${projectName}\n\nGenerated by ModMind AI (${aiSystem} on ${loaderName}).\n\n## Prompt\n${prompt}\n\n## Theme\n${theme}\n\n## Features\n${features.map(item => `- ${item}`).join('\n')}\n`
   };
 }
 
 function buildFiles({ projectName, packageName, aiSystem, loaderName, features, theme, prompt }) {
   const className = `${sanitizeProjectName(projectName).replace(/[^a-zA-Z0-9]/g, '')}Main`;
-
   return [
     createReadme(projectName, aiSystem, loaderName, theme, features, prompt),
     ...createGradleFiles(projectName, packageName, loaderName),
@@ -337,7 +325,7 @@ function buildFiles({ projectName, packageName, aiSystem, loaderName, features, 
       content: createJavaMainClass(projectName, packageName, aiSystem, loaderName, features, theme)
     },
     createMetaFile(projectName, packageName, aiSystem, loaderName),
-    ...createServiceFiles(packageName, theme),
+    ...createServiceFiles(packageName),
     ...createFeatureFiles(projectName, packageName, aiSystem, features)
   ];
 }
@@ -412,43 +400,32 @@ async function downloadZipBundle() {
   URL.revokeObjectURL(url);
 }
 
-function validatePackageName(packageName) {
-  return /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/.test(packageName);
-}
-
 function runGeneration(event) {
   event.preventDefault();
   const prompt = promptInput.value.trim();
-  const projectName = projectNameInput.value.trim();
-  const packageName = packageNameInput.value.trim();
-  const theme = featureThemeInput.value.trim();
-  const aiSystem = aiType.value;
-  const loaderName = loader.value;
-  const features = selectedFeatures();
-
-  if (!projectName) {
+  if (!prompt) {
     summary.classList.remove('muted');
-    summary.textContent = 'Please enter a project name.';
+    summary.textContent = 'Please enter a prompt first.';
     return;
   }
 
-  if (!validatePackageName(packageName)) {
-    summary.classList.remove('muted');
-    summary.textContent = 'Package name must look like: dev.modmind.project';
-    return;
-  }
+  const inferred = inferFromPrompt(prompt);
+  applyInferredSettings(inferred);
 
-  if (!theme || !features.length) {
-    summary.classList.remove('muted');
-    summary.textContent = 'Provide theme and select at least one feature.';
-    return;
-  }
+  latestProjectName = sanitizeProjectName(inferred.projectName).toLowerCase();
+  const files = buildFiles({
+    projectName: inferred.projectName,
+    packageName: inferred.packageName,
+    aiSystem: inferred.aiSystem,
+    loaderName: inferred.loaderName,
+    features: inferred.features,
+    theme: inferred.theme,
+    prompt
+  });
 
-  latestProjectName = sanitizeProjectName(projectName).toLowerCase();
-  const files = buildFiles({ projectName, packageName, aiSystem, loaderName, features, theme, prompt });
   renderFiles(files);
   summary.classList.add('muted');
-  summary.textContent = `Generated ${files.length} files from ${prompt ? 'prompt + settings' : 'manual settings'} (${aiSystem} • ${loaderName}).`;
+  summary.textContent = `Generated ${files.length} files from prompt (${inferred.aiSystem} • ${inferred.loaderName}).`;
 }
 
 function animateStatus() {
@@ -476,11 +453,10 @@ function initRevealAnimations() {
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
 
-parsePromptBtn.addEventListener('click', applyPromptToSettings);
-aiType.addEventListener('change', setLoaderOptions);
+parsePromptBtn.addEventListener('click', parsePrompt);
 form.addEventListener('submit', runGeneration);
 downloadZipBtn.addEventListener('click', downloadZipBundle);
 
-setLoaderOptions();
+setLoaderOptions('mods');
 animateStatus();
 initRevealAnimations();

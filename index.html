@@ -37,15 +37,15 @@
           <p class="eyebrow">Prompt to Project</p>
           <h1>Describe your idea and generate a <span>full Minecraft Java project</span> instantly.</h1>
           <p class="lead">
-            Type a prompt like “Create a Fabric magic mod with spells, mana, config, and commands”
-            and ModMind AI will infer the loader, features, and project architecture for you.
+            ModMind now generates from your prompt directly. Manual settings are preview-only and are
+            auto-derived from your prompt each time you generate.
           </p>
           <div class="hero-actions">
             <a href="#studio" class="cta link-button">Generate from Prompt</a>
             <a href="#features" class="ghost link-button">View Capabilities</a>
           </div>
           <div class="stats">
-            <div><strong>Prompt</strong><span>Natural language input</span></div>
+            <div><strong>Prompt</strong><span>Primary input</span></div>
             <div><strong>20+</strong><span>Generated files</span></div>
             <div><strong>.zip</strong><span>Full export</span></div>
           </div>
@@ -55,7 +55,7 @@
           <h2>Engine Status</h2>
           <div class="panel-screen"><p class="typing" id="statusLog"></p></div>
           <ul>
-            <li>✅ Prompt-aware project generation</li>
+            <li>✅ Prompt-first generation</li>
             <li>✅ Per-file and zip downloads</li>
             <li>✅ Mod + plugin loader support</li>
           </ul>
@@ -84,7 +84,7 @@
       <section class="section container" id="studio">
         <div class="section-head reveal">
           <p class="eyebrow">AI Studio</p>
-          <h2>Generate by prompt or manual settings</h2>
+          <h2>Generate directly from your prompt</h2>
         </div>
 
         <div class="studio-grid">
@@ -92,37 +92,37 @@
             <h3>Prompt</h3>
             <label>
               Build Prompt
-              <textarea id="promptInput" rows="5" placeholder="Example: Create a Fabric RPG magic mod called ArcaneDepths with spells, bosses, commands, and config."></textarea>
+              <textarea id="promptInput" rows="5" placeholder="Example: Create a Fabric RPG magic mod called ArcaneDepths with spells, bosses, commands, and config." required></textarea>
             </label>
-            <button class="ghost" id="parsePromptBtn" type="button">Apply Prompt to Settings</button>
+            <button class="ghost" id="parsePromptBtn" type="button">Preview Inferred Settings</button>
 
-            <h3 class="subhead">Project Settings</h3>
-            <label>Project Name <input type="text" id="projectName" value="ArcaneTools" required /></label>
-            <label>Java Package <input type="text" id="packageName" value="dev.modmind.arcanetools" required /></label>
-            <label>Main Feature Theme <input type="text" id="featureTheme" value="magic skills, custom tools, and progression" required /></label>
+            <h3 class="subhead">Inferred Settings (Auto)</h3>
+            <label>Project Name <input type="text" id="projectName" value="ArcaneTools" readonly /></label>
+            <label>Java Package <input type="text" id="packageName" value="dev.modmind.arcanetools" readonly /></label>
+            <label>Main Feature Theme <input type="text" id="featureTheme" value="magic skills, custom tools, and progression" readonly /></label>
 
             <div class="field-row">
               <label>
                 AI System
-                <select id="aiType">
+                <select id="aiType" disabled>
                   <option value="mods">Mods AI</option>
                   <option value="plugins">Plugins AI</option>
                 </select>
               </label>
-              <label>Target Loader <select id="loader"></select></label>
+              <label>Target Loader <select id="loader" disabled></select></label>
             </div>
 
             <label>
-              Include Features
+              Inferred Features
               <div class="check-grid">
-                <label><input type="checkbox" name="feature" value="commands" checked /> Commands</label>
-                <label><input type="checkbox" name="feature" value="events" checked /> Events</label>
-                <label><input type="checkbox" name="feature" value="config" checked /> Config</label>
+                <label><input type="checkbox" name="feature" value="commands" disabled /> Commands</label>
+                <label><input type="checkbox" name="feature" value="events" disabled /> Events</label>
+                <label><input type="checkbox" name="feature" value="config" disabled /> Config</label>
               </div>
             </label>
 
-            <button class="cta" type="submit">Generate Files</button>
-            <p class="hint">Prompt mode updates settings first, then generates a full project scaffold.</p>
+            <button class="cta" type="submit">Generate From Prompt</button>
+            <p class="hint">Generation uses prompt inference only (manual overrides are disabled).</p>
           </form>
 
           <div class="card output reveal delay-1">
@@ -130,7 +130,7 @@
               <h3>Generated Output</h3>
               <button id="downloadZipBtn" class="ghost" type="button" disabled>Download Project .zip</button>
             </div>
-            <div id="summary" class="summary muted">Enter a prompt or use manual settings, then generate.</div>
+            <div id="summary" class="summary muted">Enter a prompt and generate.</div>
             <div class="output-layout">
               <aside><ul id="fileList" class="file-list"></ul></aside>
               <pre id="codeView" class="code-view">// Generated code appears here</pre>
