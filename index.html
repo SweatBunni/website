@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ModMind AI | Working Minecraft Java Generator</title>
+    <meta
+      name="description"
+      content="ModMind AI now includes a working in-browser generator for Minecraft Java mods and plugins across Fabric, Forge, Quilt, NeoForge, Bukkit, and Spigot."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="background-glow"></div>
+
+    <header class="site-header">
+      <div class="container nav-wrap">
+        <a href="#" class="logo">
+          <span class="logo-mark">⚡</span>
+          <span>ModMind AI</span>
+        </a>
+        <nav>
+          <a href="#features">Features</a>
+          <a href="#studio">AI Studio</a>
+          <a href="#loaders">Loaders</a>
+        </nav>
+        <a href="#studio" class="cta link-button">Open Studio</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero container">
+        <div class="hero-copy reveal">
+          <p class="eyebrow">Now Fully Functional</p>
+          <h1>
+            Generate complete Minecraft <span>Java mod/plugin projects</span> directly in your browser.
+          </h1>
+          <p class="lead">
+            This page now ships with a working generator engine. Pick your AI mode, target loader,
+            and project settings to instantly create starter files, Java code, and metadata.
+          </p>
+          <div class="hero-actions">
+            <a href="#studio" class="cta link-button">Generate a Project</a>
+            <a href="#features" class="ghost link-button">See What It Builds</a>
+          </div>
+          <div class="stats">
+            <div><strong>6</strong><span>Loader targets</span></div>
+            <div><strong>2</strong><span>AI systems</span></div>
+            <div><strong>Live</strong><span>Code generation</span></div>
+          </div>
+        </div>
+
+        <div class="hero-panel reveal delay-1">
+          <h2>Engine Status</h2>
+          <div class="panel-screen">
+            <p class="typing" id="statusLog"></p>
+          </div>
+          <ul>
+            <li>✅ Real form-driven generation (not placeholder text)</li>
+            <li>✅ Produces multiple files with Java + config templates</li>
+            <li>✅ Supports mod and plugin project scaffolding</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section container" id="features">
+        <div class="section-head reveal">
+          <p class="eyebrow">Dual AI Systems</p>
+          <h2>One engine, split into dedicated Java generation modes</h2>
+        </div>
+        <div class="cards two-col">
+          <article class="card reveal">
+            <h3>Mods AI</h3>
+            <p>Fabric, Forge, Quilt, and NeoForge starter projects with core classes and metadata.</p>
+            <div class="chip-list"><span>Fabric</span><span>Forge</span><span>Quilt</span><span>NeoForge</span></div>
+          </article>
+          <article class="card reveal delay-1">
+            <h3>Plugins AI</h3>
+            <p>Bukkit and Spigot plugin templates with commands, listeners, and plugin.yml.</p>
+            <div class="chip-list"><span>Bukkit</span><span>Spigot</span></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section container" id="studio">
+        <div class="section-head reveal">
+          <p class="eyebrow">AI Studio</p>
+          <h2>Build your project now</h2>
+        </div>
+
+        <div class="studio-grid">
+          <form id="generatorForm" class="card reveal">
+            <h3>Project Settings</h3>
+            <label>
+              Project Name
+              <input type="text" id="projectName" value="ArcaneTools" required />
+            </label>
+            <label>
+              Java Package
+              <input type="text" id="packageName" value="dev.modmind.arcanetools" required />
+            </label>
+            <div class="field-row">
+              <label>
+                AI System
+                <select id="aiType">
+                  <option value="mods">Mods AI</option>
+                  <option value="plugins">Plugins AI</option>
+                </select>
+              </label>
+              <label>
+                Target Loader
+                <select id="loader"></select>
+              </label>
+            </div>
+            <label>
+              Include Features
+              <div class="check-grid">
+                <label><input type="checkbox" name="feature" value="commands" checked /> Commands</label>
+                <label><input type="checkbox" name="feature" value="events" checked /> Events</label>
+                <label><input type="checkbox" name="feature" value="config" checked /> Config</label>
+              </div>
+            </label>
+            <button class="cta" type="submit">Generate Files</button>
+            <p class="hint">All generation is local in your browser and works without external APIs.</p>
+          </form>
+
+          <div class="card output reveal delay-1">
+            <div class="output-head">
+              <h3>Generated Output</h3>
+              <button id="downloadBtn" class="ghost" type="button" disabled>Download .txt Bundle</button>
+            </div>
+            <div id="summary" class="summary muted">Generate a project to see files.</div>
+            <div class="output-layout">
+              <aside>
+                <ul id="fileList" class="file-list"></ul>
+              </aside>
+              <pre id="codeView" class="code-view">// Generated code appears here</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section container" id="loaders">
+        <div class="section-head reveal">
+          <p class="eyebrow">Supported Targets</p>
+          <h2>Templates available now</h2>
+        </div>
+        <div class="cards three-col">
+          <article class="card reveal"><h3>Fabric / Quilt</h3><p>mod json, entrypoint class, and basic item/command setup.</p></article>
+          <article class="card reveal delay-1"><h3>Forge / NeoForge</h3><p>TOML metadata and mod bootstrap classes with event bus hooks.</p></article>
+          <article class="card reveal delay-2"><h3>Bukkit / Spigot</h3><p>plugin.yml with JavaPlugin main class, command, and listener templates.</p></article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container"><p>© <span id="year"></span> ModMind AI.</p></div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
