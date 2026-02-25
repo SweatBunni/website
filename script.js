@@ -52,14 +52,70 @@ function getProjectPayload() {
   };
 }
 
+function buildFallbackFiles(payload, reason) {
+  const safeName = sanitizeProjectName(payload.projectName);
+  const className = `${safeName.replace(/[^a-zA-Z0-9]/g, '')}Main`;
+  const packagePath = payload.packageName.replace(/\./g, '/');
+  const isPlugin = payload.projectType === 'plugins';
+
+  const metadataPath = isPlugin
+    ? 'src/main/resources/plugin.yml'
+    : payload.targetLoader === 'fabric' || payload.targetLoader === 'quilt'
+      ? `src/main/resources/${payload.targetLoader}.mod.json`
+      : 'src/main/resources/META-INF/mods.toml';
+
+  const metadataContent = isPlugin
+    ? `name: ${payload.projectName}\nmain: ${payload.packageName}.${className}\nversion: 1.0.0\napi-version: '1.20'\n`
+    : payload.targetLoader === 'fabric' || payload.targetLoader === 'quilt'
+      ? `{"schemaVersion":1,"id":"${safeName.toLowerCase()}","version":"1.0.0","name":"${payload.projectName}","entrypoints":{"main":["${payload.packageName}.${className}"]}}`
+      : `modLoader="javafml"\nloaderVersion="[47,)"\n[[mods]]\nmodId="${safeName.toLowerCase()}"\nversion="1.0.0"\ndisplayName="${payload.projectName}"\n`;
+
+  return [
+    {
+      path: 'README.md',
+      content: `# ${payload.projectName}\n\nGenerated using ModMind fallback mode because API request returned ${reason}.\n\n## Prompt\n${payload.prompt}\n\n## Type\n${payload.projectType}\n\n## Loader\n${payload.targetLoader}\n`
+    },
+    {
+      path: `src/main/java/${packagePath}/${className}.java`,
+      content: `package ${payload.packageName};\n\npublic class ${className} {\n  public void init() {\n    System.out.println("${payload.projectName} initialized for ${payload.targetLoader}.");\n  }\n}\n`
+    },
+    {
+      path: metadataPath,
+      content: metadataContent
+    },
+    {
+      path: 'build.gradle',
+      content: `plugins { id 'java' }\ngroup='${payload.packageName}'\nversion='1.0.0'\nrepositories { mavenCentral() }\n`
+    }
+  ];
+}
+
 async function callModelEndpoint(endpoint, payload) {
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
+  let response;
+  try {
+    response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch {
+    return {
+      files: buildFallbackFiles(payload, 'network error'),
+      usage: null,
+      source: 'fallback',
+      warning: 'Model endpoint is unreachable. Using fallback generation.'
+    };
+  }
 
   if (!response.ok) {
+    if ([404, 405, 501, 502, 503, 504].includes(response.status)) {
+      return {
+        files: buildFallbackFiles(payload, `HTTP ${response.status}`),
+        usage: null,
+        source: 'fallback',
+        warning: `Model endpoint returned ${response.status}. Using fallback generation.`
+      };
+    }
     throw new Error(`Model API request failed (${response.status}).`);
   }
 
@@ -84,7 +140,7 @@ async function callModelEndpoint(endpoint, payload) {
     throw new Error('Model returned no valid files.');
   }
 
-  return { files: normalizedFiles, usage: parsed.usage || null };
+  return { files: normalizedFiles, usage: parsed.usage || null, source: 'model' };
 }
 
 function downloadSingleFile(file) {
@@ -175,6 +231,12 @@ async function runGeneration(event) {
 
     const result = await callModelEndpoint(PRIVATE_MODEL_ENDPOINT, payload);
     renderFiles(result.files);
+
+    if (result.source === 'fallback') {
+      summary.classList.remove('muted');
+      summary.textContent = `${result.warning} Generated ${result.files.length} fallback files.`;
+      return;
+    }
 
     const usageText = result.usage ? ` | tokens: ${JSON.stringify(result.usage)}` : '';
     summary.textContent = `Generated ${result.files.length} files successfully.${usageText}`;
