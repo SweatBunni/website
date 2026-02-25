@@ -1,6 +1,5 @@
 :root {
   --bg: #070b17;
-  --bg-soft: #0f1630;
   --card: rgba(16, 24, 48, 0.75);
   --text: #edf2ff;
   --muted: #b8c3e4;
@@ -88,7 +87,7 @@ select {
   padding: 0.72rem 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
 .link-button {
@@ -121,37 +120,21 @@ select {
 }
 
 .eyebrow { color: var(--brand-2); font-weight: 600; margin: 0; }
-
-h1 {
-  font-size: clamp(2rem, 4vw, 3.35rem);
-  line-height: 1.12;
-  margin: 0.6rem 0 1rem;
-}
-
+h1 { font-size: clamp(2rem, 4vw, 3.35rem); line-height: 1.12; margin: 0.6rem 0 1rem; }
 h1 span { color: var(--brand-2); }
-
 .lead { color: var(--muted); max-width: 62ch; }
-
 .hero-actions { display: flex; gap: 0.8rem; margin: 1.3rem 0 1.8rem; }
 
 .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
 
 .stats div,
-.card {
-  border: 1px solid var(--border);
-  background: var(--card);
-  border-radius: 1rem;
-}
+.card { border: 1px solid var(--border); background: var(--card); border-radius: 1rem; }
 
 .stats div { padding: 0.8rem; }
 .stats strong { display: block; font-size: 1.3rem; }
 .stats span { color: var(--muted); font-size: 0.88rem; }
 
-.card {
-  padding: 1.2rem;
-  box-shadow: 0 18px 35px rgba(0, 0, 0, 0.25);
-}
-
+.card { padding: 1.2rem; box-shadow: 0 18px 35px rgba(0, 0, 0, 0.25); }
 .hero-panel ul { padding-left: 1.2rem; }
 
 .panel-screen {
@@ -167,7 +150,6 @@ h1 span { color: var(--brand-2); }
 
 .section { padding: 2.4rem 0; }
 .section-head h2 { margin-top: 0.25rem; font-size: clamp(1.55rem, 2.5vw, 2.35rem); }
-
 .cards { display: grid; gap: 1rem; }
 .two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .three-col { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -188,11 +170,7 @@ h1 span { color: var(--brand-2); }
   gap: 1rem;
 }
 
-form label {
-  display: block;
-  margin-bottom: 0.8rem;
-  font-size: 0.94rem;
-}
+form label { display: block; margin-bottom: 0.8rem; font-size: 0.94rem; }
 
 input,
 select {
@@ -204,11 +182,7 @@ select {
   padding: 0.65rem 0.75rem;
 }
 
-.field-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.8rem;
-}
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
 
 .check-grid {
   display: grid;
@@ -225,12 +199,7 @@ select {
   background: rgba(255, 255, 255, 0.03);
 }
 
-.check-grid input {
-  width: auto;
-  margin: 0 0.4rem 0 0;
-  padding: 0;
-}
-
+.check-grid input { width: auto; margin: 0 0.4rem 0 0; padding: 0; }
 .hint { color: var(--muted); font-size: 0.85rem; margin-bottom: 0; }
 
 .output-head {
@@ -244,7 +213,7 @@ select {
 
 .output-layout {
   display: grid;
-  grid-template-columns: minmax(170px, 230px) 1fr;
+  grid-template-columns: minmax(220px, 300px) 1fr;
   gap: 0.8rem;
   margin-top: 0.8rem;
 }
@@ -253,31 +222,45 @@ select {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 360px;
+  max-height: 420px;
   overflow: auto;
 }
 
-.file-list button {
-  width: 100%;
-  text-align: left;
-  background: rgba(255, 255, 255, 0.03);
+.file-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.4rem;
+  margin-bottom: 0.42rem;
+}
+
+.file-preview,
+.file-download {
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 0.7rem;
-  padding: 0.5rem 0.6rem;
-  margin-bottom: 0.42rem;
+  background: rgba(255, 255, 255, 0.03);
   cursor: pointer;
-  font-size: 0.84rem;
 }
 
-.file-list button.active {
+.file-preview {
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.82rem;
+}
+
+.file-download {
+  width: 2.2rem;
+  font-weight: 700;
+}
+
+.file-preview.active {
   background: rgba(34, 211, 238, 0.16);
   border-color: rgba(34, 211, 238, 0.4);
 }
 
 .code-view {
   margin: 0;
-  max-height: 360px;
+  max-height: 420px;
   overflow: auto;
   border: 1px solid var(--border);
   border-radius: 0.8rem;
@@ -302,11 +285,7 @@ select {
   transition: all 0.7s ease;
 }
 
-.reveal.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
+.reveal.show { opacity: 1; transform: translateY(0); }
 .delay-1 { transition-delay: 0.15s; }
 .delay-2 { transition-delay: 0.3s; }
 
@@ -315,7 +294,7 @@ select {
   .hero,
   .studio-grid,
   .two-col,
-  .three-col { grid-template-columns: 1fr; }
+  .three-col,
   .stats,
   .check-grid,
   .field-row,
