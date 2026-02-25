@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ModMind AI | Real Model Java Generator</title>
+    <meta
+      name="description"
+      content="ModMind AI uses a real Java-focused model endpoint to generate complete Minecraft mod/plugin projects from prompts."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="background-glow"></div>
+
+    <header class="site-header">
+      <div class="container nav-wrap">
+        <a href="#" class="logo"><span class="logo-mark">⚡</span><span>ModMind AI</span></a>
+        <nav>
+          <a href="#features">Features</a>
+          <a href="#studio">AI Studio</a>
+          <a href="#loaders">Targets</a>
+        </nav>
+        <a href="#studio" class="cta link-button">Open Studio</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero container">
+        <div class="hero-copy reveal">
+          <p class="eyebrow">Real Model Integration</p>
+          <h1>Generate full <span>Minecraft Java projects</span> with your custom AI model endpoint.</h1>
+          <p class="lead">
+            This version calls a real backend model API. You provide project details and prompt; the
+            model returns generated files which you can preview, download individually, or export as zip.
+          </p>
+          <div class="hero-actions">
+            <a href="#studio" class="cta link-button">Generate with AI</a>
+            <a href="#features" class="ghost link-button">View Flow</a>
+          </div>
+          <div class="stats">
+            <div><strong>Real API</strong><span>Model endpoint call</span></div>
+            <div><strong>Java</strong><span>Code-focused output</span></div>
+            <div><strong>.zip</strong><span>Project export</span></div>
+          </div>
+        </div>
+
+        <div class="hero-panel reveal delay-1">
+          <h2>Engine Status</h2>
+          <div class="panel-screen"><p class="typing" id="statusLog"></p></div>
+          <ul>
+            <li>✅ Calls custom model endpoint</li>
+            <li>✅ Generates files returned by model</li>
+            <li>✅ Per-file and zip downloads</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section container" id="features">
+        <div class="section-head reveal">
+          <p class="eyebrow">Generation Pipeline</p>
+          <h2>Prompt + project config sent to your Java model</h2>
+        </div>
+        <div class="cards three-col">
+          <article class="card reveal"><h3>1) Prompt Input</h3><p>You describe the mod/plugin requirements in detail.</p></article>
+          <article class="card reveal delay-1"><h3>2) Model Call</h3><p>Frontend POSTs to your AI endpoint and receives generated file objects.</p></article>
+          <article class="card reveal delay-2"><h3>3) Export</h3><p>Review output, download each file, or export complete zip package.</p></article>
+        </div>
+      </section>
+
+      <section class="section container" id="studio">
+        <div class="section-head reveal">
+          <p class="eyebrow">AI Studio</p>
+          <h2>Model-powered generation</h2>
+        </div>
+
+        <div class="studio-grid">
+          <form id="generatorForm" class="card reveal">
+            <h3>Project Settings</h3>
+            <label>Project Name <input type="text" id="projectName" value="ArcaneTools" required /></label>
+            <label>Java Package <input type="text" id="packageName" value="dev.modmind.arcanetools" required /></label>
+
+            <div class="field-row">
+              <label>
+                Project Type
+                <select id="aiType">
+                  <option value="mods">Mods AI</option>
+                  <option value="plugins">Plugins AI</option>
+                </select>
+              </label>
+              <label>
+                Target Loader
+                <select id="loader">
+                  <option value="fabric">Fabric</option>
+                  <option value="forge">Forge</option>
+                  <option value="quilt">Quilt</option>
+                  <option value="neoforge">NeoForge</option>
+                  <option value="bukkit">Bukkit</option>
+                  <option value="spigot">Spigot</option>
+                </select>
+              </label>
+            </div>
+
+                        <label>
+              Build Prompt
+              <textarea id="promptInput" rows="7" placeholder="Create a Forge mod called ArcaneDepths with 12 spells, mana system, relic drops, dungeon bosses, config options, and admin commands." required></textarea>
+            </label>
+
+            <button class="cta" type="submit" id="generateBtn">Generate Project</button>
+            <p class="hint">This sends your prompt securely to the private ModMind model backend and renders returned files.</p>
+          </form>
+
+          <div class="card output reveal delay-1">
+            <div class="output-head">
+              <h3>Generated Output</h3>
+              <button id="downloadZipBtn" class="ghost" type="button" disabled>Download Project .zip</button>
+            </div>
+            <div id="summary" class="summary muted">Run generation to see model output.</div>
+            <div class="output-layout">
+              <aside><ul id="fileList" class="file-list"></ul></aside>
+              <pre id="codeView" class="code-view">// Model output appears here</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section container" id="loaders">
+        <div class="section-head reveal">
+          <p class="eyebrow">Supported Targets</p>
+          <h2>Mods + plugins</h2>
+        </div>
+        <div class="cards two-col">
+          <article class="card reveal"><h3>Mod Loaders</h3><p>Fabric, Forge, Quilt, NeoForge</p></article>
+          <article class="card reveal delay-1"><h3>Plugin APIs</h3><p>Bukkit, Spigot</p></article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container"><p>© <span id="year"></span> ModMind AI.</p></div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
