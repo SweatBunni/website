@@ -22,6 +22,8 @@ year.textContent = new Date().getFullYear();
 let latestFiles = [];
 let latestProjectName = 'modmind-project';
 
+const PRIVATE_MODEL_ENDPOINT = '/api/generate';
+
 function sanitizeProjectName(value) {
   return value.replace(/[^a-zA-Z0-9_-]/g, '') || 'myproject';
 }
@@ -35,14 +37,10 @@ function getProjectPayload() {
   const packageName = document.getElementById('packageName').value.trim();
   const projectType = aiType.value;
   const targetLoader = loader.value;
-  const modelEndpoint = document.getElementById('modelEndpoint').value.trim();
-  const modelName = document.getElementById('modelName').value.trim();
   const prompt = document.getElementById('promptInput').value.trim();
 
   if (!projectName) throw new Error('Project name is required.');
   if (!validatePackageName(packageName)) throw new Error('Java package must look like: dev.modmind.project');
-  if (!modelEndpoint) throw new Error('Model endpoint is required.');
-  if (!modelName) throw new Error('Model name is required.');
   if (!prompt) throw new Error('Prompt is required.');
 
   return {
@@ -50,7 +48,6 @@ function getProjectPayload() {
     packageName,
     projectType,
     targetLoader,
-    model: modelName,
     prompt
   };
 }
@@ -171,23 +168,22 @@ async function runGeneration(event) {
     generateBtn.textContent = 'Generating...';
 
     const payload = getProjectPayload();
-    const endpoint = document.getElementById('modelEndpoint').value.trim();
     latestProjectName = sanitizeProjectName(payload.projectName).toLowerCase();
 
     summary.classList.add('muted');
-    summary.textContent = `Calling ${payload.model}...`;
+    summary.textContent = 'Generating with private ModMind model...';
 
-    const result = await callModelEndpoint(endpoint, payload);
+    const result = await callModelEndpoint(PRIVATE_MODEL_ENDPOINT, payload);
     renderFiles(result.files);
 
     const usageText = result.usage ? ` | tokens: ${JSON.stringify(result.usage)}` : '';
-    summary.textContent = `Generated ${result.files.length} files with model "${payload.model}".${usageText}`;
+    summary.textContent = `Generated ${result.files.length} files successfully.${usageText}`;
   } catch (error) {
     summary.classList.remove('muted');
     summary.textContent = error.message;
   } finally {
     generateBtn.disabled = false;
-    generateBtn.textContent = 'Generate with Model';
+    generateBtn.textContent = 'Generate Project';
   }
 }
 

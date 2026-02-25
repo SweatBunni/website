@@ -107,16 +107,13 @@
               </label>
             </div>
 
-            <label>Model Endpoint <input type="url" id="modelEndpoint" value="/api/generate" required /></label>
-            <label>Model Name <input type="text" id="modelName" value="modmind-java-custom" required /></label>
-
-            <label>
+                        <label>
               Build Prompt
               <textarea id="promptInput" rows="7" placeholder="Create a Forge mod called ArcaneDepths with 12 spells, mana system, relic drops, dungeon bosses, config options, and admin commands." required></textarea>
             </label>
 
-            <button class="cta" type="submit" id="generateBtn">Generate with Model</button>
-            <p class="hint">This sends your prompt to the configured AI endpoint and renders whatever files it returns.</p>
+            <button class="cta" type="submit" id="generateBtn">Generate Project</button>
+            <p class="hint">This sends your prompt securely to the private ModMind model backend and renders returned files.</p>
           </form>
 
           <div class="card output reveal delay-1">
